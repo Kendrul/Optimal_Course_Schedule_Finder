@@ -51,6 +51,11 @@ public class TimeSlot {
     {
        return ("\t\t: " + day + ", " + startTime);
     }
+    
+    public String toStringReverse()
+    {
+           return (day + ", " + startTime+"\t: ");
+    }
      
     public boolean get13Slot()
     {

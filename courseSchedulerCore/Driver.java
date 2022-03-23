@@ -11,7 +11,10 @@ import java.lang.reflect.Array;
   
 public class Driver {
   
+	private final boolean debug = false;
     private static Parser parser = null;
+    private static Penalty penalty = null;
+	private static CourseAndTimeSlotsData courseAndTime = null;
       
     public static void main (String [] args) throws Exception
     {
@@ -47,38 +50,10 @@ public class Driver {
         }
   
         loader(fileName);
+        penalty = new Penalty();
+        createPenalty(args);
   
-        if(args.length > 2) {
-            for(int i = 0; i < args.length; i++) {
-                if (args[i].equals("-pcm"))
-                    parser.courseMinPenalty = Double.parseDouble(args[i + 1]);
-                else if (args[i].equals("-plm"))
-                    parser.labMinPenalty = Double.parseDouble(args[i + 1]);
-                else if (args[i].equals("-psd"))
-                    parser.sectionDiffPenalty = Double.parseDouble(args[i + 1]);
-                else if (args[i].equals("-ppa"))
-                    parser.notPairPenalty = Double.parseDouble(args[i + 1]);
-                else if(args[i].equals("-wmf"))
-                    parser.w_minfilled = Double.parseDouble(args[i + 1]);
-                else if (args[i].equals("-wpr"))
-                    parser.w_pref = Double.parseDouble(args[i+1]);
-                else if(args[i].equals("-wpa"))
-                    parser.w_pair = Double.parseDouble(args[i+1]);
-                else if(args[i].equals("-wsd"))
-                    parser.w_secdif = Double.parseDouble(args[i+1]);
-            }
-        }
-        else
-        {
-            System.out.println("Default penalties have been set");
-        }
-  
-        System.out.println(parser.courseMinPenalty);
-        System.out.println(parser.labMinPenalty);
-        System.out.println(parser.sectionDiffPenalty);
-        System.out.println(parser.notPairPenalty);
-  
-        SearchControl hq = new SearchControl(parser);
+        SearchControl hq = new SearchControl(parser, penalty);
         //Schedule result = hq.begin(); 
         Schedule result = null;
           
@@ -109,9 +84,9 @@ public class Driver {
         parser = new Parser();
         parser.parseDocument(fileName);
    
-        for(int i = 0; i < parser.coursesVector.size(); i++)
+        for(int i = 0; i < courseAndTime.getCoursesVector().size(); i++)
         {
-            Courses courses = parser.coursesVector.get(i);
+            Courses courses = courseAndTime.getCoursesVector().get(i);
    
             String dept = courses.getDepartment();
             String courseNum = courses.getCourseNumber();
@@ -130,12 +105,12 @@ public class Driver {
    
             //System.out.println(courses.getLabIndex().get(0));
             ArrayList<Integer> indexNums = courses.getLabIndex();
-            //System.out.println(parser.labsVector.size());
+            //System.out.println(parser.getLabsVector().size());
    
             for(int j = 0; j < courses.getLabIndex().size(); j++)
             {
                 Integer index = courses.getLabIndex().get(j);
-                Labs labs = parser.labsVector.get(index);
+                Labs labs = courseAndTime.getLabsVector().get(index);
                 String lDept = labs.getDepartment();
                 String lCourseNum = labs.getCourseNumber();
                 String lLecNum = labs.getLectureNumber();
@@ -154,21 +129,55 @@ public class Driver {
    
         }//end course for-loop
    
-//        for(int i = 0; i < parser.labsVector.size(); i ++)
+//        for(int i = 0; i < parser.getLabsVector().size(); i ++)
 //        {
-//            System.out.println("Lab: " + parser.labsVector.get(i).getCourseNumber());
+//            System.out.println("Lab: " + parser.getLabsVector().get(i).getCourseNumber());
 //        }
           
-        /*for (int x = 0; x < parser.coursesVector.size(); x++)
-        System.out.println(parser.coursesVector.get(x));
+        /*for (int x = 0; x < parser.getCoursesVector().size(); x++)
+        System.out.println(parser.getCoursesVector().get(x));
        
     for (int x = 0; x < parser.courseSlotsVector.size(); x++)
         System.out.println(parser.courseSlotsVector.get(x));*/
    
-        for(int i =0; i < parser.labSlotsVector.size(); i++)
+        for(int i =0; i < courseAndTime.getLabSlotsVector().size(); i++)
         {
-            //System.out.println(parser.labSlotsVector.get(i).getCoursemax());
+            //System.out.println(parser.getLabSlotsVector().get(i).getCoursemax());
         }
    
     }//end loader
+    
+    private static void createPenalty(String [] args) {
+        penalty = new Penalty();
+        
+        if(args.length > 2) {
+            for(int i = 0; i < args.length; i++) {
+                if (args[i].equals("-pcm"))
+                    penalty.setCourseMinPenalty(Double.parseDouble(args[i + 1]));
+                else if (args[i].equals("-plm"))
+                    penalty.setLabMinPenalty(Double.parseDouble(args[i + 1]));
+                else if (args[i].equals("-psd"))
+                	penalty.setSectionDiffPenalty(Double.parseDouble(args[i + 1]));
+                else if (args[i].equals("-ppa"))
+                	penalty.setNotPairPenalty(Double.parseDouble(args[i + 1]));
+                else if(args[i].equals("-wmf"))
+                	penalty.setW_minfilled(Double.parseDouble(args[i + 1]));
+                else if (args[i].equals("-wpr"))
+                	penalty.setW_pref(Double.parseDouble(args[i+1]));
+                else if(args[i].equals("-wpa"))
+                	penalty.setW_pair(Double.parseDouble(args[i+1]));
+                else if(args[i].equals("-wsd"))
+                	penalty.setW_secdif(Double.parseDouble(args[i+1]));
+            }
+        }
+        else
+        {
+            System.out.println("Default penalties have been set");
+        }
+        System.out.println(penalty.getCourseMinPenalty());
+        System.out.println(penalty.getLabMinPenalty());
+        System.out.println(penalty.getSectionDiffPenalty());
+        System.out.println(penalty.getNotPairPenalty());
+  
+    }
 }

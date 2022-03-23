@@ -6,7 +6,9 @@ public class SearchControl {
 	
 	private final boolean debug = false;
 	
-	private Parser parser = null;
+	private Penalty penalty = null;
+	private CourseAndTimeSlotsData courseAndTime = null;
+	
 	private Random rng1; //for good parents
 	private Random rng2; //for bad parents
 	private Random rng3; //for parent choice and random class choice
@@ -24,9 +26,11 @@ public class SearchControl {
 	private int seedThree= 19; //seed for the pickParent RNG
 	private final int seedFour = 137; //for the cull
 	
-	public SearchControl(Parser parse)
+	public SearchControl(Parser parse, Penalty pen)
 	{
-		parser = parse;
+		courseAndTime = parse.getCoursesAndTime();
+		if (pen != null) penalty = pen;
+		else penalty = new Penalty(); //use defaults
 		//indexer();
 		//seedThree = (int) System.currentTimeMillis();
 	}
@@ -39,7 +43,7 @@ public class SearchControl {
 	    {
 	    		seed = rng3.nextInt();
 	    }
-		SearchInstanceRandom tester = new SearchInstanceRandom(rng3.nextInt(), parser);
+		SearchInstanceRandom tester = new SearchInstanceRandom(rng3.nextInt(), courseAndTime, penalty);
 		return tester.assignTest();
 	}
 	
@@ -72,7 +76,7 @@ public class SearchControl {
 	    		while((current == null) && (counter < runTimeRandom))
 	    		{//create schedules until a valid one is made
 
-	    			SearchInstanceRandom creation = new SearchInstanceRandom(rng3.nextInt(), parser);
+	    			SearchInstanceRandom creation = new SearchInstanceRandom(rng3.nextInt(), courseAndTime, penalty);
 	    			current = creation.assign();
 	    			if(debug) System.out.println("Random Loop Iteration: " + counter);
 	    			//System.out.println(current);
@@ -111,7 +115,7 @@ public class SearchControl {
 	    		Schedule badParent = pickBad(theList);
 	    		Schedule goodParent = pickGood(theList);
 	    		
-	    		searchParty = new SearchInstanceGenetic(goodParent, badParent, rng3.nextInt(), parser);
+	    		searchParty = new SearchInstanceGenetic(goodParent, badParent, rng3.nextInt(), courseAndTime, penalty);
 	    		newGuy = searchParty.assign();
 	    		
 	    		if(newGuy != null) {
@@ -329,13 +333,13 @@ public class SearchControl {
 	    private void indexer()
 	    {//adds the index to the parent course for each lab
 	    	
-	    	for(int i = 0; i < parser.coursesVector.size(); i++ ) 
+	    	for(int i = 0; i < courseAndTime.getCoursesVector().size(); i++ ) 
 	    	{
-	    		Courses course = parser.coursesVector.get(i);
+	    		Courses course = courseAndTime.getCoursesVector().get(i);
 	    		
 	    		for(int j = 0; j < course.getLabIndex().size(); j++)
 	    		{
-	    			parser.labsVector.get(course.getLabIndex().get(j)).setCIndex(i);
+	    			courseAndTime.getLabsVector().get(course.getLabIndex().get(j)).setCIndex(i);
 	    		}
 	    	}
 	    }

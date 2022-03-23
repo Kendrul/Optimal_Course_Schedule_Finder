@@ -9,3 +9,6 @@ If you run Driver (which contains Main) to try the base program, enter the follo
 
 replace PATH\\example.txt with the appropriate full file path to example.txt
 
+To run the tests goto the testRunner class:
+replace the string field pathString with the full file path for example.txt
+

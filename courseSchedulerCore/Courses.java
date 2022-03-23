@@ -218,8 +218,8 @@ public class Courses {
 			if(sched.courseList[i] == null) return true; //not assigned yet
 			for(int j = 0; j < unwanted.size(); j++)
 			{
-				if(sched.courseList[i].getDay().matches(sched.parser.courseSlotsVector.get(unwanted.get(j)).getDay())){
-					if(sched.courseList[i].getStartTime().matches(sched.parser.courseSlotsVector.get(unwanted.get(j)).getStartTime()))
+				if(sched.courseList[i].getDay().matches(sched.getCourseAndTime().getCourseSlotsVector().get(unwanted.get(j)).getDay())){
+					if(sched.courseList[i].getStartTime().matches(sched.getCourseAndTime().getCourseSlotsVector().get(unwanted.get(j)).getStartTime()))
 						{return false;} //unwanted failed
 				}
 			}//end for loop j
@@ -234,9 +234,9 @@ public class Courses {
 		int firstIndex = 0;
 		ArrayList<Integer> slot500 = new ArrayList<>();
 		
-		for(int j = 0; j < sched.parser.coursesVector.size(); j++)
+		for(int j = 0; j < sched.getCourseAndTime().getCoursesVector().size(); j++)
 		{
-			if(sched.parser.coursesVector.get(j).getCourseNumber().startsWith("5"))
+			if(sched.getCourseAndTime().getCoursesVector().get(j).getCourseNumber().startsWith("5"))
 			{
 				slot500.add(j);
 			}

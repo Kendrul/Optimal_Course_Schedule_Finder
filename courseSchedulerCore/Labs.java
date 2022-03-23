@@ -226,9 +226,9 @@ public class Labs {
     {
     	//return true;
     	//if (cIndex != -1) return !(sched.timeCheck(cIndex, true, index, false));
-    	for(int i = 0; i < sched.parser.coursesVector.size(); i++ ) 
+    	for(int i = 0; i < sched.getCourseAndTime().getCoursesVector().size(); i++ ) 
     	{//look through courses
-    		Courses course = sched.parser.coursesVector.get(i);
+    		Courses course = sched.getCourseAndTime().getCoursesVector().get(i);
     		if((course.getCourseNumber().compareTo(courseNumber)==0) && (course.getDepartment().compareTo(department)==0) && (course.getLectureNumber().compareTo(lectureNumber)==0))
     		{//found the correct course-lecture
 	    		for(int j = 0; j < course.getLabIndex().size(); j++)
@@ -253,8 +253,8 @@ public class Labs {
 			if(sched.labList[i] == null) return true; //not assigned yet
 			for(int j = 0; j < unwanted.size(); j++)
 			{
-				if(sched.labList[i].getDay().matches(sched.parser.labSlotsVector.get(unwanted.get(j)).getDay())){
-					if(sched.labList[i].getStartTime().matches(sched.parser.labSlotsVector.get(unwanted.get(j)).getStartTime()))
+				if(sched.labList[i].getDay().matches(sched.getCourseAndTime().getLabSlotsVector().get(unwanted.get(j)).getDay())){
+					if(sched.labList[i].getStartTime().matches(sched.getCourseAndTime().getLabSlotsVector().get(unwanted.get(j)).getStartTime()))
 						{return false;} //unwanted failed
 				}
 			}//end for loop j

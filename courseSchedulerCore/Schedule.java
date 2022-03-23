@@ -8,7 +8,10 @@ public class Schedule {
 		//private final boolean testValue = true;
 		
 	boolean debug = false;
-	Parser parser;
+	
+	private CourseAndTimeSlotsData courseAndTime = null;	
+	Penalty penalty = null;
+	
 	public TimeSlot [] courseList;
 	public TimeSlot [] labList;
 	boolean isValid;
@@ -18,16 +21,18 @@ public class Schedule {
 	 * 
 	 * @param parse
 	 */
-	public Schedule(Parser parse)
+	public Schedule(CourseAndTimeSlotsData cat, Penalty pen)
 	{//constructor
-		parser = parse;
+		setCourseAndTime(cat);
+		if (pen != null) penalty = pen;
+		else penalty = new Penalty(); //use defaults
 		//debug = debugMode;
 		//the schedule is valid until some assignment makes it invalid
 		isValid = true;
 		//schedule starts with no penalties until they are assigned
 		value = 0;
-		courseList = new TimeSlot[parser.coursesVector.size()];
-		labList = new TimeSlot[parser.labsVector.size()];
+		courseList = new TimeSlot[getCourseAndTime().getCoursesVector().size()];
+		labList = new TimeSlot[getCourseAndTime().getLabsVector().size()];
 	}
 	
 	public String toString()
@@ -35,23 +40,53 @@ public class Schedule {
 	    int y = 0;
 	    String temp = "Eval-value: " + value + "\n";
 	     
-	    for (int x = 0; x < parser.coursesVector.size(); x++)
+	    for (int x = 0; x < getCourseAndTime().getCoursesVector().size(); x++)
 	    {
-	        temp += parser.coursesVector.get(x) + "\t" + courseList[x] + "\n";
+	        temp += getCourseAndTime().getCoursesVector().get(x) + "\t" + courseList[x] + "\n";
 	         
 	        // checking for duplicates in labs
 	        for (int checker = 0; checker < x; checker++)
-	            if (parser.coursesVector.get(checker).getLabIndex().equals(parser.coursesVector.get(x).getLabIndex()))
-	                parser.coursesVector.get(x).clearLabIndex();
+	            if (getCourseAndTime().getCoursesVector().get(checker).getLabIndex().equals(getCourseAndTime().getCoursesVector().get(x).getLabIndex()))
+	                getCourseAndTime().getCoursesVector().get(x).clearLabIndex();
 	         
 	        // printing all the labs for a certain lecture
-	        if (parser.coursesVector.get(x).getLabIndex().size() > 0)
+	        if (getCourseAndTime().getCoursesVector().get(x).getLabIndex().size() > 0)
 	        {
-	            y = parser.coursesVector.get(x).getLabIndex().get(0);
+	            y = getCourseAndTime().getCoursesVector().get(x).getLabIndex().get(0);
 	             
-	            for (int count = 0; count < parser.coursesVector.get(x).getLabIndex().size(); count++)
+	            for (int count = 0; count < getCourseAndTime().getCoursesVector().get(x).getLabIndex().size(); count++)
 	            {
-	                temp += parser.labsVector.get(y) + " " + labList[y] + "\n";
+	                temp += getCourseAndTime().getLabsVector().get(y) + " " + labList[y] + "\n";
+	                y++;
+	            }
+	        }
+	    } 
+	      
+	    return temp;        
+	}
+	
+	public String toStringReverse()
+	{
+	    int y = 0;
+	    String temp = "Eval-value: " + value + "\n";
+	     
+	    for (int x = 0; x < getCourseAndTime().getCoursesVector().size(); x++)
+	    {
+	        temp += courseList[x].toStringReverse() + " " + getCourseAndTime().getCoursesVector().get(x) + "\n";
+	         
+	        // checking for duplicates in labs
+	        for (int checker = 0; checker < x; checker++)
+	            if (getCourseAndTime().getCoursesVector().get(checker).getLabIndex().equals(getCourseAndTime().getCoursesVector().get(x).getLabIndex()))
+	                getCourseAndTime().getCoursesVector().get(x).clearLabIndex();
+	         
+	        // printing all the labs for a certain lecture
+	        if (getCourseAndTime().getCoursesVector().get(x).getLabIndex().size() > 0)
+	        {
+	            y = getCourseAndTime().getCoursesVector().get(x).getLabIndex().get(0);
+	             
+	            for (int count = 0; count < getCourseAndTime().getCoursesVector().get(x).getLabIndex().size(); count++)
+	            {
+	                temp += labList[y].toStringReverse() + " " +  getCourseAndTime().getLabsVector().get(y) + "\n";
 	                y++;
 	            }
 	        }
@@ -63,7 +98,7 @@ public class Schedule {
 	public boolean assign13(int index, TimeSlot slot)
 	{
 		courseList[index] = slot;
-		isValid = parser.coursesVector.get(index).constr(this, index) && slot.constr(this, index, false);
+		isValid = getCourseAndTime().getCoursesVector().get(index).constr(this, index) && slot.constr(this, index, false);
 		return isValid;
 	}
 	
@@ -75,13 +110,13 @@ public class Schedule {
 		{
 			courseList[index] = slot;
 			//isValid = constr(); //old
-			isValid = parser.coursesVector.get(index).constr(this, index) && slot.constr(this, index, isCourse);
+			isValid = getCourseAndTime().getCoursesVector().get(index).constr(this, index) && slot.constr(this, index, isCourse);
 		} else //its a lab
 		{
-			Labs target = parser.labsVector.get(index);
+			Labs target = getCourseAndTime().getLabsVector().get(index);
 			labList[index] = slot;
 			//isValid = constr(); //old
-			isValid = parser.labsVector.get(index).constr(this, index) && slot.constr(this, index, isCourse);
+			isValid = getCourseAndTime().getLabsVector().get(index).constr(this, index) && slot.constr(this, index, isCourse);
 			if (!isValid) labList[index] = null;
 		}
 		
@@ -97,16 +132,16 @@ public class Schedule {
 	public boolean constr()
 	{//this method checks to ensure the schedule does not violate any hard constraints
 		for (int x = 0; x < courseList.length; x++)
-			if (!parser.coursesVector.get(x).constr(this, x))
+			if (!getCourseAndTime().getCoursesVector().get(x).constr(this, x))
 			{
-				if(debug) System.out.println("Error on: " + parser.coursesVector.get(x) + ", Course index: " + x);
+				if(debug) System.out.println("Error on: " + getCourseAndTime().getCoursesVector().get(x) + ", Course index: " + x);
 				return false;
 			}
 
 		for (int x = 0; x < labList.length; x++)
-			if (!parser.labsVector.get(x).constr(this, x))
+			if (!getCourseAndTime().getLabsVector().get(x).constr(this, x))
 			{
-				if(debug) System.out.println("Error on: " + parser.labsVector.get(x));
+				if(debug) System.out.println("Error on: " + getCourseAndTime().getLabsVector().get(x));
 				return false;
 			}
 		return true;
@@ -118,7 +153,7 @@ public class Schedule {
 	
 	public double eval()
     {
-        return minEval() * parser.w_minfilled + prefEval() * parser.w_pref + pairEval() * parser.w_pair + sectionEval() * parser.w_secdif;
+        return minEval() * penalty.getW_minfilled() + prefEval() * penalty.getW_pref() + pairEval() * penalty.getW_pair() + sectionEval() * penalty.getW_secdif();
     }
       
     public double minEval(){
@@ -127,9 +162,9 @@ public class Schedule {
           
         int counter = 0;
       
-        for (int x = 0; x < parser.courseSlotsVector.size(); x++)
+        for (int x = 0; x < getCourseAndTime().getCourseSlotsVector().size(); x++)
         {
-            TimeSlot slotChecker = parser.courseSlotsVector.get(x);
+            TimeSlot slotChecker = getCourseAndTime().getCourseSlotsVector().get(x);
              
             if(slotChecker.getCourseMin() > 0)
             {
@@ -144,9 +179,9 @@ public class Schedule {
             }
         }
       
-        for (int x = 0; x < parser.labSlotsVector.size(); x++)
+        for (int x = 0; x < getCourseAndTime().getLabSlotsVector().size(); x++)
         {
-            TimeSlot slotChecker = parser.labSlotsVector.get(x);
+            TimeSlot slotChecker = getCourseAndTime().getLabSlotsVector().get(x);
              
             if(slotChecker.getLabMin() > 0)
             {
@@ -163,7 +198,7 @@ public class Schedule {
          
         //System.out.println(missingLabs);
         //System.out.println("min: " + (missingCourses + missingLabs));
-        return (missingCourses * parser.courseMinPenalty) + (missingLabs * parser.labMinPenalty);
+        return (missingCourses * penalty.getCourseMinPenalty()) + (missingLabs * penalty.getLabMinPenalty());
     }
       
       
@@ -175,15 +210,15 @@ public class Schedule {
          
  
         for (int x = 0; x < courseList.length; x++)
-            for (int prefCount = 0; prefCount < parser.coursesVector.get(x).getPreference().size(); prefCount++)
-                if (!(parser.courseSlotsVector.get(parser.coursesVector.get(x).getPreference().get(prefCount)).equals(courseList[x])))
-                    coursesPrefMissed += parser.coursesVector.get(x).getPrefEval().get(prefCount);
+            for (int prefCount = 0; prefCount < getCourseAndTime().getCoursesVector().get(x).getPreference().size(); prefCount++)
+                if (!(getCourseAndTime().getCourseSlotsVector().get(getCourseAndTime().getCoursesVector().get(x).getPreference().get(prefCount)).equals(courseList[x])))
+                    coursesPrefMissed += getCourseAndTime().getCoursesVector().get(x).getPrefEval().get(prefCount);
          
          
         for (int x = 0; x < labList.length; x++)
-            for (int prefCount = 0; prefCount < parser.labsVector.get(x).getPreference().size(); prefCount++)
-                if (!(parser.labSlotsVector.get(parser.labsVector.get(x).getPreference().get(prefCount)).equals(labList[x])))
-                    labsPrefMissed += parser.labsVector.get(x).getPrefEval().get(prefCount);
+            for (int prefCount = 0; prefCount < getCourseAndTime().getLabsVector().get(x).getPreference().size(); prefCount++)
+                if (!(getCourseAndTime().getLabSlotsVector().get(getCourseAndTime().getLabsVector().get(x).getPreference().get(prefCount)).equals(labList[x])))
+                    labsPrefMissed += getCourseAndTime().getLabsVector().get(x).getPrefEval().get(prefCount);
          
         //System.out.println("Preferred: " + coursesPrefMissed + labsPrefMissed);
         return (coursesPrefMissed + labsPrefMissed);
@@ -197,13 +232,13 @@ public class Schedule {
              
         for(int i = 0; i< courseList.length; i++)
         {
-            pairs = parser.coursesVector.get(i).getPairCourse();
+            pairs = getCourseAndTime().getCoursesVector().get(i).getPairCourse();
              
             for (int j = 0; j < pairs.size(); j++)
                 if(!timeCheck(i, true, pairs.get(j), true))
                     notPair++;          
  
-            pairs = parser.coursesVector.get(i).getPairLab();
+            pairs = getCourseAndTime().getCoursesVector().get(i).getPairLab();
              
             for (int j = 0; j < pairs.size(); j++)
                 if(!timeCheck(i, true, pairs.get(j), false)) 
@@ -213,7 +248,7 @@ public class Schedule {
  
         for(int i = 0; i < labList.length; i++)
         {
-            pairs = parser.labsVector.get(i).getPairLab();
+            pairs = getCourseAndTime().getLabsVector().get(i).getPairLab();
              
             for (int j = 0; j < pairs.size(); j++)
                 if(!timeCheck(i, false, pairs.get(j), false)) 
@@ -221,7 +256,7 @@ public class Schedule {
         }
              
         //System.out.println("NotPair: " + notPair);
-        return (notPair * parser.notPairPenalty) / 2;
+        return (notPair * penalty.getNotPairPenalty()) / 2;
     }
  
     public double sectionEval(){
@@ -229,16 +264,16 @@ public class Schedule {
          
         for (int x = 0; x < courseList.length; x++)
         {
-            Courses course = parser.coursesVector.get(x);
+            Courses course = getCourseAndTime().getCoursesVector().get(x);
              
             for (int y = 0; y < x; y++) 
-                if (parser.coursesVector.get(y).getCourseNumber().compareTo(parser.coursesVector.get(x).getCourseNumber()) == 0)
+                if (getCourseAndTime().getCoursesVector().get(y).getCourseNumber().compareTo(getCourseAndTime().getCoursesVector().get(x).getCourseNumber()) == 0)
                     if (courseList[x].equals(courseList[y]))
                         overlap++;
         }
          
         //System.out.println("sectionEval: " + overlap);
-        return overlap * parser.sectionDiffPenalty;
+        return overlap * penalty.getSectionDiffPenalty();
     }
 	
 	public void setValue(double theValue)
@@ -331,9 +366,13 @@ public class Schedule {
 				}
 		return false;
 	}
-	
-	public Parser getParser()
-	{
-		return parser;
+
+	public CourseAndTimeSlotsData getCourseAndTime() {
+		return courseAndTime;
 	}
+
+	public void setCourseAndTime(CourseAndTimeSlotsData courseAndTime) {
+		this.courseAndTime = courseAndTime;
+	}
+	
 }//end Schedule
