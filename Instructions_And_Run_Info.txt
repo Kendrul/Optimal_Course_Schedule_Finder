@@ -1,0 +1,24 @@
+Course Scheduler Run Info
+
+****************************************************************************************************************************
+Input File Data (Please See example files for exact structure of input file)
+***************************************************************************************************************************
+Required Inputs: Time Slots (Lectures & Labs/Tutorials, have their own unique day & time), Courses (Lectures & Labs/Tutorials)
+
+Hard Constraints: Not Compatible courses, Manually Assigned Courses
+
+Soft Constraints: Unwanted Course-TimeSlot pairs, Course Pairs (Scheduled at same time), Preferred Time Slots
+********************************************************************************************************************
+
+***************************************
+Operation Instructions
+***************************************
+If you run Driver (which contains Main) to try the base program, enter the following command line argument:
+
+-f PATH\\example.txt -wmf 1.0 -wpr 1.0 -wpa 1.0 -wsd 1.0 -pcm 1.0 -plm 1.0 -ppa 1.0 -psd 1.0
+
+replace PATH\\example.txt with the appropriate full file path to example.txt
+
+To run the tests goto the testRunner class:
+replace the string field pathString with the full file path for example.txt
+****************************************************************************************
